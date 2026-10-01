@@ -1,0 +1,23 @@
+{
+	"name": "LS_Postgress",
+	"properties": {
+		"annotations": [],
+		"type": "PostgreSqlV2",
+		"typeProperties": {
+			"server": "ep-silent-water-b449s8u8-pooler.c-6.us-east-2.aws.neon.tech",
+			"port": 5432,
+			"database": "neondb",
+			"username": "neondb_owner",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS_KEYVALUT",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "caresyncpostgress"
+			},
+			"sslMode": 2,
+			"authenticationType": "Basic"
+		}
+	}
+}

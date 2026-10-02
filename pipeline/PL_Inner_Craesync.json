@@ -139,7 +139,21 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"notebookPath": "/caresyncworkspace/caresync-databricks/landing_to_Bronze"
+					"notebookPath": "/caresyncworkspace/caresync-databricks/landing_to_Bronze",
+					"baseParameters": {
+						"landing_timestamp": {
+							"value": "@variables('start_time')",
+							"type": "Expression"
+						},
+						"table_name": {
+							"value": "@activity('Get_sourceData').output.firstRow.source_table_name",
+							"type": "Expression"
+						},
+						"source_system": {
+							"value": "@activity('Get_sourceData').output.firstRow.source_system",
+							"type": "Expression"
+						}
+					}
 				},
 				"linkedServiceName": {
 					"referenceName": "LS_Databricks",
@@ -166,7 +180,17 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"notebookPath": "/caresyncworkspace/caresync-databricks/landing_silver"
+					"notebookPath": "/caresyncworkspace/caresync-databricks/landing_silver",
+					"baseParameters": {
+						"table_name": {
+							"value": "@activity('Get_sourceData').output.firstRow.source_table_name",
+							"type": "Expression"
+						},
+						"landing_timestamp": {
+							"value": "@variables('start_time')",
+							"type": "Expression"
+						}
+					}
 				},
 				"linkedServiceName": {
 					"referenceName": "LS_Databricks",

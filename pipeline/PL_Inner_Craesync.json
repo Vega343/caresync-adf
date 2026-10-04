@@ -325,7 +325,7 @@
 							"typeProperties": {
 								"variableName": "QUERY",
 								"value": {
-									"value": "@concat('select * from PUBLIC.',activity('Get_sourceData').output.firstRow.source_table_name,' ','where ',activity('Get_sourceData').output.firstRow.watermark_column,'>','''',activity('Read_Watermark').output.watermark_value,'''')",
+									"value": "@concat('select * from PUBLIC.',activity('Get_sourceData').output.firstRow.source_table_name,' ','where ',activity('Get_sourceData').output.firstRow.watermark_column,'>','''',activity('Read_Watermark').output.firstRow.watermark_value,'''')",
 									"type": "Expression"
 								}
 							}

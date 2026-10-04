@@ -202,7 +202,7 @@
 							"type": "SetVariable",
 							"dependsOn": [
 								{
-									"activity": "Read_Watermark_copy1",
+									"activity": "water_maekvaluee",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -248,6 +248,30 @@
 									"type": "DatasetReference"
 								}
 							}
+						},
+						{
+							"name": "water_maekvaluee",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Read_Watermark_copy1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "water_mark",
+								"value": {
+									"value": "@activity('Read_Watermark_copy1').output.firstRow.watermark.value",
+									"type": "Expression"
+								}
+							}
 						}
 					],
 					"ifTrueActivities": [
@@ -284,7 +308,7 @@
 							"type": "SetVariable",
 							"dependsOn": [
 								{
-									"activity": "Read_Watermark",
+									"activity": "water_mark",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -299,6 +323,30 @@
 								"variableName": "QUERY",
 								"value": {
 									"value": "@concat('select * from PUBLIC.',activity('Get_sourceData').output.firstRow.source_table_name,' ','where ',activity('Get_sourceData').output.firstRow.watermark_column,'>','''',activity('Read_Watermark').output.firstRow.watermark_value,'''')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "water_mark",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Read_Watermark",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "water_mark",
+								"value": {
+									"value": "@activity('Read_Watermark').output.firstRow.watermark_value",
 									"type": "Expression"
 								}
 							}
@@ -525,6 +573,9 @@
 				"type": "String"
 			},
 			"QUERY": {
+				"type": "String"
+			},
+			"water_mark": {
 				"type": "String"
 			}
 		},

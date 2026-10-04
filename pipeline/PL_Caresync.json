@@ -17,7 +17,10 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
-						"sqlReaderQuery": "select table_id from ctrl.table_config where is_active='True' and source_system ='neon_postgres';",
+						"sqlReaderQuery": {
+							"value": "select table_id from ctrl.table_config where is_active='True' and source_system ='@{pipeline().parameters.source_system}';",
+							"type": "Expression"
+						},
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
@@ -148,11 +151,11 @@
 		"parameters": {
 			"source_system": {
 				"type": "string",
-				"defaultValue": "non_postgress"
+				"defaultValue": "adls_csv"
 			},
 			"adf_runid": {
 				"type": "string",
-				"defaultValue": "a1"
+				"defaultValue": "a5"
 			}
 		},
 		"annotations": []

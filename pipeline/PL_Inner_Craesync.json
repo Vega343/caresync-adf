@@ -200,14 +200,7 @@
 						{
 							"name": "query_for_fullLoad",
 							"type": "SetVariable",
-							"dependsOn": [
-								{
-									"activity": "water_maekvaluee",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
+							"dependsOn": [],
 							"policy": {
 								"secureOutput": false,
 								"secureInput": false
@@ -217,58 +210,6 @@
 								"variableName": "QUERY",
 								"value": {
 									"value": "select * from PUBLIC.@{activity('Get_sourceData').output.firstRow.source_table_name}",
-									"type": "Expression"
-								}
-							}
-						},
-						{
-							"name": "Read_Watermark_copy1",
-							"type": "Lookup",
-							"dependsOn": [],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"source": {
-									"type": "AzureSqlSource",
-									"sqlReaderQuery": {
-										"value": "select  watermark_value from ctrl.watermark where table_id=@{pipeline().parameters.table_id}",
-										"type": "Expression"
-									},
-									"queryTimeout": "02:00:00",
-									"partitionOption": "None"
-								},
-								"dataset": {
-									"referenceName": "DS_AzureSQL",
-									"type": "DatasetReference"
-								}
-							}
-						},
-						{
-							"name": "water_maekvaluee",
-							"type": "SetVariable",
-							"dependsOn": [
-								{
-									"activity": "Read_Watermark_copy1",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"policy": {
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"variableName": "water_mark",
-								"value": {
-									"value": "@activity('Read_Watermark_copy1').output.firstRow.watermark.value",
 									"type": "Expression"
 								}
 							}

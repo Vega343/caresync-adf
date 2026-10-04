@@ -447,7 +447,7 @@
 											"type": "BinarySource",
 											"storeSettings": {
 												"type": "AzureBlobFSReadSettings",
-												"recursive": true,
+												"recursive": false,
 												"modifiedDatetimeStart": {
 													"value": "@variables('water_mark')",
 													"type": "Expression"

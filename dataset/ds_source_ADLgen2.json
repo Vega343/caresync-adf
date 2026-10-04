@@ -1,0 +1,29 @@
+{
+	"name": "ds_source_ADLgen2",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ADLGen2",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"foldername": {
+				"type": "string"
+			},
+			"source": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@dataset().foldername",
+					"type": "Expression"
+				},
+				"fileSystem": "source"
+			}
+		}
+	}
+}

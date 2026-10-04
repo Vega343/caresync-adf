@@ -200,7 +200,14 @@
 						{
 							"name": "query_for_fullLoad",
 							"type": "SetVariable",
-							"dependsOn": [],
+							"dependsOn": [
+								{
+									"activity": "Read_Watermark_copy1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
 							"policy": {
 								"secureOutput": false,
 								"secureInput": false
@@ -211,6 +218,34 @@
 								"value": {
 									"value": "select * from PUBLIC.@{activity('Get_sourceData').output.firstRow.source_table_name}",
 									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Read_Watermark_copy1",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": {
+										"value": "select  watermark_value from ctrl.watermark where table_id=@{pipeline().parameters.table_id}",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "DS_AzureSQL",
+									"type": "DatasetReference"
 								}
 							}
 						}
@@ -448,7 +483,7 @@
 											"type": "DatasetReference",
 											"parameters": {
 												"foldername": {
-													"value": "@activity('Get_sourceData').output.firstRow.source_path\r\n",
+													"value": "@activity('Get_sourceData').output.firstRow.source_path\n",
 													"type": "Expression"
 												},
 												"source": "source"

@@ -52,13 +52,7 @@
 				"type": "Copy",
 				"dependsOn": [
 					{
-						"activity": "Get_sourceData",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Set_Start_Time",
+						"activity": "query",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -76,7 +70,7 @@
 					"source": {
 						"type": "PostgreSqlV2Source",
 						"query": {
-							"value": "select * from public.@{activity('Get_sourceData').output.firstRow.source_table_name};",
+							"value": "@variables('QUERY')",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00"
@@ -189,6 +183,14 @@
 						"landing_timestamp": {
 							"value": "@variables('start_time')",
 							"type": "Expression"
+						},
+						"load_type": {
+							"value": "@activity('Get_sourceData').output.firstRow.load_type",
+							"type": "Expression"
+						},
+						"merge_keys": {
+							"value": "@coalesce(activity('Get_sourceData').output.firstRow.merge_keys,'')",
+							"type": "Expression"
 						}
 					}
 				},
@@ -198,28 +200,11 @@
 				}
 			},
 			{
-				"name": "Fail1",
-				"type": "Fail",
-				"dependsOn": [
-					{
-						"activity": "Get_sourceData",
-						"dependencyConditions": [
-							"Failed"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"message": "source_data is failed to fetch ",
-					"errorCode": "Timeout"
-				}
-			},
-			{
 				"name": "Update_success_audit",
 				"type": "Script",
 				"dependsOn": [
 					{
-						"activity": "bronze_to_silver",
+						"activity": "ifwatermakupdate",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -249,6 +234,154 @@
 					],
 					"scriptBlockExecutionTimeout": "02:00:00"
 				}
+			},
+			{
+				"name": "query",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Set_Start_Time",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Get_sourceData",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@not(equals(activity('Get_sourceData').output.firstRow.load_type,'FULL'))",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "query_for_fullLoad",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "QUERY",
+								"value": {
+									"value": "select * from PUBLIC.@{activity('Get_sourceData').output.firstRow.source_table_name}",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Read_Watermark",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": {
+										"value": "select  watermark_value from ctrl.watermark where table_id=@{pipeline().parameters.table_id}",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "DS_AzureSQL",
+									"type": "DatasetReference"
+								}
+							}
+						},
+						{
+							"name": "query_for_Incremental",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Read_Watermark",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "QUERY",
+								"value": {
+									"value": "@concat('select * from PUBLIC.',activity('Get_sourceData').output.firstRow.source_table_name,' ','where ',activity('Get_sourceData').output.firstRow.watermark_column,'>','''',activity('Read_Watermark').output.watermark_value,'''')",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "ifwatermakupdate",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "bronze_to_silver",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@not(equals(activity('Get_sourceData').output.firstRow.load_type,'FULL'))",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Update_watermarkscript",
+							"type": "Script",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "LS_AzureSQL",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": {
+											"value": "update ctrl.watermark set watermark_value=SYSUTCDATETIME() where table_id=@{pipeline().parameters.table_id}",
+											"type": "Expression"
+										}
+									}
+								],
+								"scriptBlockExecutionTimeout": "02:00:00"
+							}
+						}
+					]
+				}
 			}
 		],
 		"parameters": {
@@ -263,6 +396,9 @@
 		},
 		"variables": {
 			"start_time": {
+				"type": "String"
+			},
+			"QUERY": {
 				"type": "String"
 			}
 		},

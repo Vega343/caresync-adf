@@ -1,0 +1,12 @@
+{
+	"name": "caresynca-df",
+	"properties": {
+		"globalParameters": {
+			"email_recepients": {
+				"type": "string",
+				"value": "kishore120p@gmail.com"
+			}
+		}
+	},
+	"location": "centralindia"
+}

@@ -147,6 +147,23 @@
 								],
 								"scriptBlockExecutionTimeout": "02:00:00"
 							}
+						},
+						{
+							"name": "fail_the_pipeline",
+							"type": "Fail",
+							"dependsOn": [
+								{
+									"activity": "Pl_inner_caresync",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"message": "The pipeline is failed ",
+								"errorCode": "pipleline is failed "
+							}
 						}
 					]
 				}

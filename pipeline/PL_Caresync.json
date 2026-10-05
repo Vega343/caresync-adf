@@ -171,12 +171,10 @@
 		],
 		"parameters": {
 			"source_system": {
-				"type": "string",
-				"defaultValue": "adls_csv"
+				"type": "string"
 			},
 			"adf_runid": {
-				"type": "string",
-				"defaultValue": "a4"
+				"type": "string"
 			}
 		},
 		"annotations": []

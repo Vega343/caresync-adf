@@ -17,7 +17,7 @@
 					},
 					"waitOnCompletion": true,
 					"parameters": {
-						"source_system": "non_postgress",
+						"source_system": "neon_postgres",
 						"adf_runid": {
 							"value": "@pipeline().RunId",
 							"type": "Expression"

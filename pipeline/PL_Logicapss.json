@@ -42,7 +42,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "email_header",
-					"value": "Hi Team, the CareSync Master pipeline has completed. Please find the run status of each stage in the table below.\""
+					"value": "Hi Team, the CareSync Master pipeline has completed. Please find the run status of each stage in the table below."
 				}
 			},
 			{

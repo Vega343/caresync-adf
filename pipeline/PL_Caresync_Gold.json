@@ -180,6 +180,23 @@
 								],
 								"scriptBlockExecutionTimeout": "02:00:00"
 							}
+						},
+						{
+							"name": "Gold_failure",
+							"type": "Fail",
+							"dependsOn": [
+								{
+									"activity": "Gold",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"message": "The gold pipilene is failed ",
+								"errorCode": "The gold pipilene is failed "
+							}
 						}
 					]
 				}

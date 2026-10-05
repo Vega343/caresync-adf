@@ -1,0 +1,179 @@
+{
+	"name": "PL_Logicapss",
+	"properties": {
+		"activities": [
+			{
+				"name": "get_table_audit",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "select * from ctrl.audit_log where adf_run_id='@{pipeline().parameters.adf_runid}'",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_AzureSQL",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Email_body_header",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "email_header",
+					"value": "Hi Team, the CareSync Master pipeline has completed. Please find the run status of each stage in the table below.\""
+				}
+			},
+			{
+				"name": "Email_body_fotter",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "footer",
+					"value": "For any queries, please reach out to venkatakondareddy124@gmail.com"
+				}
+			},
+			{
+				"name": "Email_subject",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "get_failed_count",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "subject",
+					"value": {
+						"value": "@{pipeline().globalParameters.env} | @{if(greater(activity('get_failed_count').output.firstRow.count,0),'FAILED','SUCESS')} | CARESYNC MASTER RUN",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "get_failed_count",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "select count(*) as count from ctrl.audit_log\nwhere adf_run_id='@{pipeline().parameters.adf_runid}'\nand status != 'SUCCESS'",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_AzureSQL",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "LOGIC_APPS_BODY",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "get_table_audit",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Email_body_header",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Email_body_fotter",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Email_subject",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "LOGIC_APPS_BODY",
+					"value": {
+						"value": "{\n\"subject\":@{variables('subject')}\",\n\"email_receipients\":\"@{pipeline().globalParameters.email_recepients},\n\"body_header\":\"@{variables('email_header')}\",\n\"body_footer\":\"@{variables('footer')}\",\n\"status_table\":activity('get_table_audit').output.value\n}",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"adf_runid": {
+				"type": "string",
+				"defaultValue": "a2"
+			}
+		},
+		"variables": {
+			"email_header": {
+				"type": "String"
+			},
+			"footer": {
+				"type": "String"
+			},
+			"subject": {
+				"type": "String"
+			},
+			"LOGIC_APPS_BODY": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}
